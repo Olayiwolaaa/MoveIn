@@ -1,6 +1,6 @@
 # Spec: MoveIn v1 (project level)
 
-Status: DRAFT — awaiting approval
+Status: APPROVED 2026-10-23
 Intent: `docs/intent/movein-v1.md` · Modules: `CAPABILITY-MAP.md` (approved) · Module specs: `specs/SPEC-<module-id>.md`
 
 ## How requirements are written (EARS)
@@ -31,12 +31,13 @@ Success: merchants pay or renew because tap counts show real student contact. Ta
 |---|---|
 | Package manager / workspaces | Bun workspaces |
 | Frontend | Next.js (App Router) + TypeScript + Tailwind CSS |
-| Backend | NestJS + TypeScript |
+| Backend | NestJS + TypeScript, running on Node (Bun runtime deferred until Nest + Prisma are tested on it) |
 | Auth | Clerk (merchants and admins only) |
 | Payments | Bachs (hosted checkout + webhooks) |
 | Database | PostgreSQL + Prisma |
 | Images | Cloudinary |
 | Email | Resend |
+| Bot check | Cloudflare Turnstile (report form, contact buttons) |
 
 Versions are pinned at scaffold time and recorded here.
 
@@ -110,7 +111,7 @@ export class ListingsController {
 | SYS-010 | The API shall retain payment records even if the related listing is archived or deleted. |
 | SYS-011 | The web app shall render all public and merchant pages usably at viewport widths from 360px up. |
 | SYS-012 | The system shall never display a merchant's Clerk account email or any private document publicly. |
-| SYS-013 | Where the area/campus list is used, the system shall read it from one shared source in `packages/shared`. |
+| SYS-013 | The system shall read campuses and areas only from the admin-managed database tables (LST-060 to LST-068), and property types and amenities only from `packages/shared`. |
 
 ## Boundaries
 
@@ -126,6 +127,47 @@ export class ListingsController {
 - A forged or unsigned Bachs or Clerk webhook changes nothing.
 - An expired listing disappears from public search without manual action.
 
+## Hosting and deployment
+
+Managed platform for the pilot (decided 2026-10-23). Provider: **Railway**, in its EU region. Check current pricing before signing up.
+
+| Piece | Choice |
+|---|---|
+| Website | Railway service: `apps/web` (Next.js), built from its Dockerfile |
+| API | Railway service: `apps/api` (NestJS on Node), built from its Dockerfile, always on, runs the scheduled jobs in-process |
+| Database | Railway PostgreSQL, with Railway's volume backups switched on where the plan offers them, plus the weekly export (SYS-023) |
+| HTTPS and domains | Provided by the platform; custom domain added before launch |
+| DNS, CDN, protection | Cloudflare in front (same account as Turnstile) |
+| Images | Cloudinary |
+| Deploys | Automatic on push to `main`; a GitHub Actions check (lint, tests) must pass first |
+| Secrets | Platform environment variables only; never in the repo |
+| Local webhooks | Cloudflare Tunnel (or the Bachs CLI `bachs listen`) to receive Bachs and Clerk webhooks on a laptop |
+
+The Docker images keep the app portable, so moving to a VPS later means copying the images and restoring the database.
+
+| Id | Requirement |
+|---|---|
+| SYS-020 | The system shall serve every public, merchant, admin and webhook route over HTTPS only, and redirect HTTP to HTTPS. |
+| SYS-021 | The database shall accept connections only from the platform's private network and from admin IPs explicitly allowed for maintenance. |
+| SYS-022 | The API and web services shall be built from Dockerfiles in the repo, so the same images can run on another host. |
+| SYS-023 | Once a week, a GitHub Actions job shall export a `pg_dump` of the production database to separate object storage (for example Cloudflare R2), keeping 4 weeks; platform backups, where enabled, are an extra layer, not the only one. |
+| SYS-024 | Before launch, a backup shall be restored into a fresh database and the app run against it, to prove backups work. |
+| SYS-025 | The API shall run as one always-on instance for the scheduled jobs; if more instances are added later, the advisory locks (NTF-009) keep each job single-running. |
+| SYS-026 | The API shall expose `GET /health` that checks the database connection, used by the platform's health checks and by an external uptime monitor that alerts the admin email after 2 minutes of failure. |
+| SYS-027 | If a deploy fails its health check, then the platform shall keep the previous version running. |
+| SYS-028 | Database schema changes shall run as a pre-deploy step (`prisma migrate deploy`), and a failed migration shall stop the deploy. |
+
+## Launch checklist (set before going live)
+
+- [ ] `SUPPORT_EMAIL` and/or `SUPPORT_WHATSAPP` set (moderation decision 1)
+- [ ] First campuses and areas entered at `/admin/locations` (LST-068)
+- [ ] First admin created with the seed command (IDN-041)
+- [ ] Bachs live keys and webhook secret set; live NGN card and bank transfer confirmed
+- [ ] Turnstile site key and secret set
+- [ ] Sending domain verified in Resend and `MAIL_FROM` set; Resend webhook secret set
+- [ ] Custom domain on the website and API; Cloudflare in front
+- [ ] Backup restore test done (SYS-024); uptime monitor alerting (SYS-026)
+
 ## Decisions log
 
 | Date | Decision |
@@ -133,12 +175,17 @@ export class ListingsController {
 | 2026-10-23 | Repo starts empty; Bun workspaces monorepo. |
 | 2026-10-23 | Prisma, Cloudinary, Resend accepted. |
 | 2026-10-23 | No pre-publication review; listings go live once paid; admins remove afterwards. |
+| 2026-10-23 | Bun for installs and scripts; NestJS runs on Node until Nest + Prisma are tested on Bun. |
+| 2026-10-23 | No phone sign-in; admin management dashboard; no merchant types. |
+| 2026-10-23 | Campuses and areas are admin-managed in the database, not hard-coded. |
+| 2026-10-23 | Early renewal stacks the new period on the current expiry date. |
+| 2026-10-23 | Cloudflare Turnstile added as a dependency. |
+| 2026-10-23 | 3 scam reports with phone numbers from different people in 48 hours automatically suspend a merchant; appeal, admin investigation, lost days made up if cleared. |
+| 2026-10-23 | Managed platform (Railway) for the pilot instead of a VPS; Docker images keep a later move possible. |
+| 2026-10-23 | TypeScript pinned to 5.9 across the workspace. TypeScript 7 removed `moduleResolution: node`, and tools that use the TypeScript JavaScript API (Nest CLI, ts-jest) may not support it yet; revisit once they do. Module resolution uses `NodeNext` (API, shared) and `Bundler` (web). |
 
 ## Open questions
 
-1. **Bun as API runtime:** run NestJS on Bun in production, or use Bun only for installs and scripts and run the API on Node? (Proposal: Node runtime for the API until Nest + Prisma are tested on Bun.)
-2. **Expiry timing:** reminder at day 25, hide at day 30, archive after 14 more days? (Proposal.)
-3. **Plans and prices:** keep ₦2,000 single / ₦8,000 five-pack / ₦15,000 ten-pack, all 30 days?
-4. **Areas and campuses** for filters: UNILORIN, KWASU, Kwara Poly — which at launch, and which neighbourhoods (Tanke, Oke-Odo, Fate, …)?
-5. **Bachs account:** confirmed live access for one-off NGN payments?
-6. **Hosting:** where will web, API and Postgres run?
+None. All specs approved 2026-10-23.
+
+Resolved: hosting (Railway), expiry timings (moved to `SPEC-listing-expiry.md`), plans and prices (BIL-001), campuses and areas (LST-060 to LST-068, launch checklist), Bachs live access (launch checklist).

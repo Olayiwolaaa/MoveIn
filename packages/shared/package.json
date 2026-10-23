@@ -1,0 +1,15 @@
+{
+  "name": "@movein/shared",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "echo \"@movein/shared: no tests yet\""
+  },
+  "devDependencies": {
+    "typescript": "5.9"
+  }
+}

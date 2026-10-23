@@ -1,0 +1,11 @@
+{
+  "name": "movein",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "bun run --filter @movein/shared build && bun run --filter './apps/*' dev",
+    "build": "bun run --filter @movein/shared build && bun run --filter @movein/api build && bun run --filter @movein/web build",
+    "lint": "bun run --filter '*' lint",
+    "test": "bun run --filter '*' test"
+  }
+}
