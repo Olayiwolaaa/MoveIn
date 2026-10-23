@@ -14,14 +14,14 @@ To protect the 6-week target, every task is tagged:
 
 The [F] tasks total about 7 days. Cutting them gives a realistic **~6-week launch**, with the follow-ups in weeks 7–8.
 
-| [F] task | Why it can wait |
-|---|---|
-| T23 Performance budget in CI | Check speed by hand before launch instead |
-| T25 Admin stats page | Merchant stats ship at launch; you can query the database meanwhile |
-| T29 Audit-log viewer | Audit records are still written from day one; only the viewer waits |
-| T33 Bounce handling | Low volume at launch; failed emails still show on `/admin/notifications` |
-| T34b Availability nudges | Expiry and reminders ship; the 14-day nudge follows |
-| T39 Copy to new draft | No listing reaches archive until day 44 |
+| [F] task                     | Why it can wait                                                          |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| T23 Performance budget in CI | Check speed by hand before launch instead                                |
+| T25 Admin stats page         | Merchant stats ship at launch; you can query the database meanwhile      |
+| T29 Audit-log viewer         | Audit records are still written from day one; only the viewer waits      |
+| T33 Bounce handling          | Low volume at launch; failed emails still show on `/admin/notifications` |
+| T34b Availability nudges     | Expiry and reminders ship; the 14-day nudge follows                      |
+| T39 Copy to new draft        | No listing reaches archive until day 44                                  |
 
 ## Start these outside the code now
 
@@ -53,35 +53,35 @@ Post     follow-ups            T39[F]
 
 ## Weekly view (launch-critical path)
 
-| Week | Tasks | You can demo |
-|---|---|---|
-| 1 | T01–T07 | Monorepo deploying to Railway; sign-in guarded API |
-| 2 | T08–T13 | Merchant signs up, completes profile; admin manages locations; drafts saved |
-| 3 | T14–T19 | Photos upload; sandbox payment publishes a listing |
-| 4 | T20–T22, T24 | Students search, open a listing and tap Call/WhatsApp |
-| 5 | T26–T28, T30–T32 | Reports, auto-suspension and appeals; emails sending |
-| 6 | T34a, T35–T38 | Expiry running; end-to-end tests; production live |
+| Week | Tasks            | You can demo                                                                |
+| ---- | ---------------- | --------------------------------------------------------------------------- |
+| 1    | T01–T07          | Monorepo deploying to Railway; sign-in guarded API                          |
+| 2    | T08–T13          | Merchant signs up, completes profile; admin manages locations; drafts saved |
+| 3    | T14–T19          | Photos upload; sandbox payment publishes a listing                          |
+| 4    | T20–T22, T24     | Students search, open a listing and tap Call/WhatsApp                       |
+| 5    | T26–T28, T30–T32 | Reports, auto-suspension and appeals; emails sending                        |
+| 6    | T34a, T35–T38    | Expiry running; end-to-end tests; production live                           |
 
 ## Checkpoints
 
-| Checkpoint | Proves | Must pass before continuing |
-|---|---|---|
-| A (after T11) | Auth and roles are right | Forged Clerk webhook rejected; merchant → admin endpoint 403; suspended merchant can't write |
-| B (after T19) | Money is safe | Sandbox card publishes a listing; declined card and forged webhook change nothing; two concurrent publishes use one slot |
-| C (after T22) | Students can find places | Only public, available listings in search; detail page has no phone number; works at 360px |
-| D (after T28) | Trust tools work | Three qualifying reports suspend a merchant; clearing gives the lost days back |
-| Launch (after T38) | Ready for real merchants | Every [L] requirement has a passing test; launch checklist in `SPEC.md` complete |
+| Checkpoint         | Proves                   | Must pass before continuing                                                                                              |
+| ------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| A (after T11)      | Auth and roles are right | Forged Clerk webhook rejected; merchant → admin endpoint 403; suspended merchant can't write                             |
+| B (after T19)      | Money is safe            | Sandbox card publishes a listing; declined card and forged webhook change nothing; two concurrent publishes use one slot |
+| C (after T22)      | Students can find places | Only public, available listings in search; detail page has no phone number; works at 360px                               |
+| D (after T28)      | Trust tools work         | Three qualifying reports suspend a merchant; clearing gives the lost days back                                           |
+| Launch (after T38) | Ready for real merchants | Every [L] requirement has a passing test; launch checklist in `SPEC.md` complete                                         |
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Bachs live approval slow, or NGN corridors not enabled | Can't take payments at launch | Apply in week 1; launch on free trials if live access is late (admins can grant them, BIL-050) |
-| Bachs SDK or API differs from the docs read during spec | Billing rework | T17 starts with a sandbox spike against the real SDK before building on it |
-| Clerk token verification in NestJS | Auth delays | T07 is early and small; use Clerk's official backend SDK |
-| Railway region or features differ from assumptions (backups, pre-deploy commands) | Deploy rework | T04 deploys a hello-world end to end in week 1 |
-| Empty marketplace at launch | Students leave, merchants won't pay | Merchant outreach in parallel; free trials |
-| Running behind | Missed season | Cut [F] tasks first; never cut payment verification or authorization tests |
+| Risk                                                                              | Impact                              | Mitigation                                                                                     |
+| --------------------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Bachs live approval slow, or NGN corridors not enabled                            | Can't take payments at launch       | Apply in week 1; launch on free trials if live access is late (admins can grant them, BIL-050) |
+| Bachs SDK or API differs from the docs read during spec                           | Billing rework                      | T17 starts with a sandbox spike against the real SDK before building on it                     |
+| Clerk token verification in NestJS                                                | Auth delays                         | T07 is early and small; use Clerk's official backend SDK                                       |
+| Railway region or features differ from assumptions (backups, pre-deploy commands) | Deploy rework                       | T04 deploys a hello-world end to end in week 1                                                 |
+| Empty marketplace at launch                                                       | Students leave, merchants won't pay | Merchant outreach in parallel; free trials                                                     |
+| Running behind                                                                    | Missed season                       | Cut [F] tasks first; never cut payment verification or authorization tests                     |
 
 ## How each task is done
 

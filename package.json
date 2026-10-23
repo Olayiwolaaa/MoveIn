@@ -1,11 +1,24 @@
 {
   "name": "movein",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "bun run --filter @movein/shared build && bun run --filter './apps/*' dev",
     "build": "bun run --filter @movein/shared build && bun run --filter @movein/api build && bun run --filter @movein/web build",
-    "lint": "bun run --filter '*' lint",
-    "test": "bun run --filter '*' test"
+    "lint": "eslint . && bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:e2e": "bun run --filter @movein/web test:e2e"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "5.9",
+    "typescript-eslint": "^8.72.0"
   }
 }

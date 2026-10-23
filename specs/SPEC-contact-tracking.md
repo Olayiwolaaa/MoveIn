@@ -54,18 +54,18 @@ model ListingDailyStats {
 
 **HTTP (API)** — public.
 
-| Method | Path | Purpose |
-|---|---|---|
-| POST | `/public/listings/:id/view` | Record a view (sent from the browser after the page loads) |
-| POST | `/public/listings/:id/contact` | Body `{ channel }`; records the tap and returns the `tel:` or `wa.me` link |
+| Method | Path                           | Purpose                                                                    |
+| ------ | ------------------------------ | -------------------------------------------------------------------------- |
+| POST   | `/public/listings/:id/view`    | Record a view (sent from the browser after the page loads)                 |
+| POST   | `/public/listings/:id/contact` | Body `{ channel }`; records the tap and returns the `tel:` or `wa.me` link |
 
 **HTTP (API)** — merchant and admin.
 
-| Method | Path | Who | Purpose |
-|---|---|---|---|
-| GET | `/me/listings/stats` | merchant | Per-listing counts for 7 days, 30 days, all time |
-| GET | `/me/listings/:id/stats` | merchant | Daily counts for one listing, last 30 days |
-| GET | `/admin/stats` | admin | Totals by day and campus, top listings, quiet merchants |
+| Method | Path                     | Who      | Purpose                                                 |
+| ------ | ------------------------ | -------- | ------------------------------------------------------- |
+| GET    | `/me/listings/stats`     | merchant | Per-listing counts for 7 days, 30 days, all time        |
+| GET    | `/me/listings/:id/stats` | merchant | Daily counts for one listing, last 30 days              |
+| GET    | `/admin/stats`           | admin    | Totals by day and campus, top listings, quiet merchants |
 
 **Web**
 
@@ -78,41 +78,41 @@ model ListingDailyStats {
 
 ### Buttons
 
-| Id | Requirement |
-|---|---|
-| CTR-001 | While a public listing's availability is `AVAILABLE`, the detail page shall show a Call button and a WhatsApp button in the contact slot. |
-| CTR-002 | While a public listing's availability is `TAKEN` or `UNAVAILABLE`, the contact slot shall show no buttons and no number (DSC-033). |
-| CTR-003 | The detail page HTML shall not contain the merchant's phone or WhatsApp number. |
-| CTR-004 | When a visitor taps Call or WhatsApp, the web app shall get a Cloudflare Turnstile token, send it with `POST /public/listings/:id/contact`, and open the returned link within the same tap. |
-| CTR-005 | When the channel is `CALL`, the API shall return `tel:` followed by the merchant's E.164 phone number (IDN-021); on screens where `tel:` links don't work (desktop), the web app shall also show the number with a copy button. |
+| Id      | Requirement                                                                                                                                                                                                                                       |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CTR-001 | While a public listing's availability is `AVAILABLE`, the detail page shall show a Call button and a WhatsApp button in the contact slot.                                                                                                         |
+| CTR-002 | While a public listing's availability is `TAKEN` or `UNAVAILABLE`, the contact slot shall show no buttons and no number (DSC-033).                                                                                                                |
+| CTR-003 | The detail page HTML shall not contain the merchant's phone or WhatsApp number.                                                                                                                                                                   |
+| CTR-004 | When a visitor taps Call or WhatsApp, the web app shall get a Cloudflare Turnstile token, send it with `POST /public/listings/:id/contact`, and open the returned link within the same tap.                                                       |
+| CTR-005 | When the channel is `CALL`, the API shall return `tel:` followed by the merchant's E.164 phone number (IDN-021); on screens where `tel:` links don't work (desktop), the web app shall also show the number with a copy button.                   |
 | CTR-006 | When the channel is `WHATSAPP`, the API shall return `https://wa.me/<number without +>?text=<message>`, where the message is always in English and reads: "Hi, I found your listing \"<title>\" on MoveIn: <listing URL>. Is it still available?" |
-| CTR-007 | If the contact request fails, then the web app shall show "Couldn't load the number, tap to try again" and shall not show a stale number. |
-| CTR-008 | If the listing is no longer public when the contact request arrives, then the API shall respond 404 and the web app shall reload the page. |
-| CTR-009 | If the Turnstile token is missing, expired or fails verification with Cloudflare, then the API shall respond 400, return no number and record no event, and the web app shall run the check again. |
+| CTR-007 | If the contact request fails, then the web app shall show "Couldn't load the number, tap to try again" and shall not show a stale number.                                                                                                         |
+| CTR-008 | If the listing is no longer public when the contact request arrives, then the API shall respond 404 and the web app shall reload the page.                                                                                                        |
+| CTR-009 | If the Turnstile token is missing, expired or fails verification with Cloudflare, then the API shall respond 400, return no number and record no event, and the web app shall run the check again.                                                |
 
 ### Counting
 
-| Id | Requirement |
-|---|---|
+| Id      | Requirement                                                                                                                                                                     |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | CTR-010 | When a public listing's detail page has loaded in the browser, the web app shall send one view event; server rendering, link previews and prefetching shall not count as views. |
-| CTR-011 | When the API returns a contact link, it shall record a `CALL` or `WHATSAPP` event in the same request. |
-| CTR-012 | The API shall compute `visitorHash` as SHA-256 of IP address + user agent + a secret that rotates daily, and shall never store raw IP addresses. |
-| CTR-013 | If the request comes from a signed-in user who owns the listing or is an admin, then the API shall return the link but record no event. |
-| CTR-014 | If the user agent matches a known bot or link-preview fetcher (including WhatsApp, Facebook, Twitter and search crawlers), then the API shall record no event. |
-| CTR-015 | If one `visitorHash` sends more than 30 contact or view requests in a minute, then the API shall respond 429 and record nothing further that minute. |
-| CTR-016 | The API shall count a visitor's repeated taps on the same listing and channel within 24 hours in the total, but only once in unique contacts. |
+| CTR-011 | When the API returns a contact link, it shall record a `CALL` or `WHATSAPP` event in the same request.                                                                          |
+| CTR-012 | The API shall compute `visitorHash` as SHA-256 of IP address + user agent + a secret that rotates daily, and shall never store raw IP addresses.                                |
+| CTR-013 | If the request comes from a signed-in user who owns the listing or is an admin, then the API shall return the link but record no event.                                         |
+| CTR-014 | If the user agent matches a known bot or link-preview fetcher (including WhatsApp, Facebook, Twitter and search crawlers), then the API shall record no event.                  |
+| CTR-015 | If one `visitorHash` sends more than 30 contact or view requests in a minute, then the API shall respond 429 and record nothing further that minute.                            |
+| CTR-016 | The API shall count a visitor's repeated taps on the same listing and channel within 24 hours in the total, but only once in unique contacts.                                   |
 
 ### Stats
 
-| Id | Requirement |
-|---|---|
-| CTR-020 | A scheduled job shall roll events up into `ListingDailyStats` every hour, by Africa/Lagos day (SYS-008). |
-| CTR-021 | The API shall keep raw `ListingEvent` rows for 180 days and daily stats for as long as the listing exists. |
-| CTR-022 | When a merchant opens `/dashboard/listings`, the web app shall show each listing's views, calls and WhatsApps for the last 7 days, last 30 days and all time. |
-| CTR-023 | When a merchant opens `/dashboard/listings/:id/stats`, the web app shall show daily views and contacts for the last 30 days. |
-| CTR-024 | The merchant dashboard shall label the counts as taps on the buttons, not confirmed calls or messages. |
+| Id      | Requirement                                                                                                                                                                                                                                                                                             |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CTR-020 | A scheduled job shall roll events up into `ListingDailyStats` every hour, by Africa/Lagos day (SYS-008).                                                                                                                                                                                                |
+| CTR-021 | The API shall keep raw `ListingEvent` rows for 180 days and daily stats for as long as the listing exists.                                                                                                                                                                                              |
+| CTR-022 | When a merchant opens `/dashboard/listings`, the web app shall show each listing's views, calls and WhatsApps for the last 7 days, last 30 days and all time.                                                                                                                                           |
+| CTR-023 | When a merchant opens `/dashboard/listings/:id/stats`, the web app shall show daily views and contacts for the last 30 days.                                                                                                                                                                            |
+| CTR-024 | The merchant dashboard shall label the counts as taps on the buttons, not confirmed calls or messages.                                                                                                                                                                                                  |
 | CTR-025 | When an admin opens `/admin/stats`, the web app shall show for a chosen date range: public listings, active merchants, views, calls, WhatsApps and unique contacts, by day and by campus; the 10 listings with the most contacts; and merchants with live listings but no contacts in the last 14 days. |
-| CTR-026 | The API shall return stats only for listings the merchant owns (LST-004). |
+| CTR-026 | The API shall return stats only for listings the merchant owns (LST-004).                                                                                                                                                                                                                               |
 
 ## Acceptance tests
 

@@ -4,14 +4,14 @@ Plan: `tasks/plan.md` · [L] launch-critical · [F] follow-up
 
 ## Phase 0 — Foundation
 
-- [ ] **T01 [L] Scaffold the monorepo**
+- [x] **T01 [L] Scaffold the monorepo**
   - Acceptance: Bun workspaces with `apps/web` (Next.js App Router, TypeScript strict, Tailwind), `apps/api` (NestJS, TypeScript strict, runs on Node), `packages/shared`; root scripts `dev`, `build`, `lint`, `test`.
   - Verify: `bun install && bun run build` succeeds; web on :3000 and API on :4000 both start.
   - Files: `package.json`, `apps/web/*`, `apps/api/*`, `packages/shared/*`, `tsconfig.base.json`
   - Reqs: SPEC project structure, code style
 
 - [ ] **T02 [L] Tooling and CI**
-  - Acceptance: ESLint + Prettier; Jest in the API; Playwright in web; GitHub Actions runs lint, test, build on every push and PR.
+  - Acceptance: ESLint + Prettier; Vitest + SWC in the API; Playwright in web; GitHub Actions runs lint, test, build on every push and PR.
   - Verify: a failing test makes CI red; fixing it makes CI green.
   - Files: `.github/workflows/ci.yml`, lint/test configs
 

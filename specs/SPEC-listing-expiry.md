@@ -18,12 +18,12 @@ Out: renewal itself (listings + billing, LST-025 to LST-027); payment; emails th
 
 All values are environment settings so they can change without a code change.
 
-| Setting | Default | Meaning |
-|---|---|---|
-| `EXPIRY_REMINDER_DAYS` | 5 | First reminder this many days before `expiresAt` |
-| `EXPIRY_LAST_REMINDER_DAYS` | 1 | Last reminder this many days before `expiresAt` |
-| `ARCHIVE_GRACE_DAYS` | 14 | Archive this many days after `expiresAt` |
-| `AVAILABILITY_STALE_DAYS` | 14 | Nudge when availability hasn't been confirmed for this long |
+| Setting                     | Default | Meaning                                                     |
+| --------------------------- | ------- | ----------------------------------------------------------- |
+| `EXPIRY_REMINDER_DAYS`      | 5       | First reminder this many days before `expiresAt`            |
+| `EXPIRY_LAST_REMINDER_DAYS` | 1       | Last reminder this many days before `expiresAt`             |
+| `ARCHIVE_GRACE_DAYS`        | 14      | Archive this many days after `expiresAt`                    |
+| `AVAILABILITY_STALE_DAYS`   | 14      | Nudge when availability hasn't been confirmed for this long |
 
 With a 30-day plan: live day 0, first reminder day 25, last reminder day 29, hidden day 30, archived day 44.
 
@@ -33,13 +33,13 @@ With a 30-day plan: live day 0, first reminder day 25, last reminder day 29, hid
 
 No new tables. Reminders and nudges use notification `dedupeKey`s so each is sent once:
 
-| Notification | `dedupeKey` |
-|---|---|
-| First reminder | `expiring:<listingId>:<expiresAt ISO>` |
-| Last reminder | `expiring-last:<listingId>:<expiresAt ISO>` |
-| Expired | `expired:<listingId>:<expiresAt ISO>` |
-| Archived | `archived:<listingId>` |
-| Availability nudge | `stale:<listingId>:<availabilityAt ISO>` |
+| Notification       | `dedupeKey`                                 |
+| ------------------ | ------------------------------------------- |
+| First reminder     | `expiring:<listingId>:<expiresAt ISO>`      |
+| Last reminder      | `expiring-last:<listingId>:<expiresAt ISO>` |
+| Expired            | `expired:<listingId>:<expiresAt ISO>`       |
+| Archived           | `archived:<listingId>`                      |
+| Availability nudge | `stale:<listingId>:<availabilityAt ISO>`    |
 
 Because the key includes `expiresAt`, renewing a listing (which moves `expiresAt`) automatically starts a fresh reminder cycle.
 
@@ -47,65 +47,65 @@ Because the key includes `expiresAt`, renewing a listing (which moves `expiresAt
 
 **Jobs** (NestJS scheduler, each behind a Postgres advisory lock, NTF-009)
 
-| Job | Runs | Does |
-|---|---|---|
-| `expire-listings` | every 15 min | EXP-001 to EXP-004 |
-| `send-expiry-reminders` | hourly | EXP-010 to EXP-013 |
-| `archive-listings` | daily 03:00 Africa/Lagos | EXP-020 to EXP-023 |
+| Job                        | Runs                     | Does               |
+| -------------------------- | ------------------------ | ------------------ |
+| `expire-listings`          | every 15 min             | EXP-001 to EXP-004 |
+| `send-expiry-reminders`    | hourly                   | EXP-010 to EXP-013 |
+| `archive-listings`         | daily 03:00 Africa/Lagos | EXP-020 to EXP-023 |
 | `nudge-stale-availability` | daily 09:00 Africa/Lagos | EXP-030 to EXP-033 |
 
 **HTTP (API)** — amendment to listings (A5)
 
-| Method | Path | Who | Purpose |
-|---|---|---|---|
-| POST | `/listings/:id/copy` | owning merchant | Copy an `ARCHIVED` or `EXPIRED` listing into a new `DRAFT` |
+| Method | Path                 | Who             | Purpose                                                    |
+| ------ | -------------------- | --------------- | ---------------------------------------------------------- |
+| POST   | `/listings/:id/copy` | owning merchant | Copy an `ARCHIVED` or `EXPIRED` listing into a new `DRAFT` |
 
 ## Requirements
 
 ### Expiry
 
-| Id | Requirement |
-|---|---|
+| Id      | Requirement                                                                                                                                                                |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EXP-001 | When the expire job finds a `PUBLISHED` listing whose `expiresAt` has passed, it shall call `ListingsService.markExpired` and queue `listing.expired`, in one transaction. |
-| EXP-002 | The expire job shall process listings in batches of 200 until none are left, so a backlog after downtime clears in one run. |
-| EXP-003 | If the expire job fails partway, then listings already expired shall stay expired and the next run shall continue with the rest. |
-| EXP-004 | Expiring a listing shall not change its availability, fees, photos or stats, so renewing brings it back exactly as it was. |
+| EXP-002 | The expire job shall process listings in batches of 200 until none are left, so a backlog after downtime clears in one run.                                                |
+| EXP-003 | If the expire job fails partway, then listings already expired shall stay expired and the next run shall continue with the rest.                                           |
+| EXP-004 | Expiring a listing shall not change its availability, fees, photos or stats, so renewing brings it back exactly as it was.                                                 |
 
 ### Reminders
 
-| Id | Requirement |
-|---|---|
+| Id      | Requirement                                                                                                                                                                          |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | EXP-010 | When a `PUBLISHED` listing's `expiresAt` is within `EXPIRY_REMINDER_DAYS`, the reminder job shall queue `listing.expiringSoon` with the expiry date and slots the merchant has left. |
-| EXP-011 | When a `PUBLISHED` listing's `expiresAt` is within `EXPIRY_LAST_REMINDER_DAYS`, the reminder job shall queue `listing.expiringTomorrow`. |
-| EXP-012 | Where a listing's whole paid period is shorter than `EXPIRY_REMINDER_DAYS` (for example a short free trial), the job shall send only the last reminder. |
-| EXP-013 | If the listing has already been renewed beyond the reminder window, or its merchant is suspended, then the job shall send no reminder. |
-| EXP-014 | When several of one merchant's listings need the same reminder on the same day, the job shall send one email listing them all. |
+| EXP-011 | When a `PUBLISHED` listing's `expiresAt` is within `EXPIRY_LAST_REMINDER_DAYS`, the reminder job shall queue `listing.expiringTomorrow`.                                             |
+| EXP-012 | Where a listing's whole paid period is shorter than `EXPIRY_REMINDER_DAYS` (for example a short free trial), the job shall send only the last reminder.                              |
+| EXP-013 | If the listing has already been renewed beyond the reminder window, or its merchant is suspended, then the job shall send no reminder.                                               |
+| EXP-014 | When several of one merchant's listings need the same reminder on the same day, the job shall send one email listing them all.                                                       |
 
 ### Archiving
 
-| Id | Requirement |
-|---|---|
+| Id      | Requirement                                                                                                                                                                                                                  |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EXP-020 | When an `EXPIRED` or `REMOVED` listing's `expiresAt` is more than `ARCHIVE_GRACE_DAYS` in the past, the archive job shall call `ListingsService.archive(GRACE_ENDED)` and, for `EXPIRED` listings, queue `listing.archived`. |
-| EXP-021 | While the listing's merchant has a suspension `UNDER_REVIEW`, the archive job shall skip their listings (MOD-054). |
-| EXP-022 | Archiving shall keep the listing, fees, photo records and stats (LST-054), and shall not delete photos from Cloudinary. |
-| EXP-023 | The archive job shall never archive a `DRAFT`; drafts stay until the merchant deletes them (the 20-draft limit, LST-003, stops buildup). |
+| EXP-021 | While the listing's merchant has a suspension `UNDER_REVIEW`, the archive job shall skip their listings (MOD-054).                                                                                                           |
+| EXP-022 | Archiving shall keep the listing, fees, photo records and stats (LST-054), and shall not delete photos from Cloudinary.                                                                                                      |
+| EXP-023 | The archive job shall never archive a `DRAFT`; drafts stay until the merchant deletes them (the 20-draft limit, LST-003, stops buildup).                                                                                     |
 
 ### Availability nudges
 
-| Id | Requirement |
-|---|---|
+| Id      | Requirement                                                                                                                                                                             |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EXP-030 | When a public listing marked `AVAILABLE` has `availabilityAt` older than `AVAILABILITY_STALE_DAYS`, the nudge job shall queue `listing.checkAvailability` with one-tap links (NTF-030). |
-| EXP-031 | The nudge job shall send at most one nudge per listing per `AVAILABILITY_STALE_DAYS` period, and none in the last `EXPIRY_LAST_REMINDER_DAYS` before expiry. |
-| EXP-032 | When the merchant confirms availability by any route (dashboard, one-tap link, edit), `availabilityAt` resets and the next nudge waits another full period. |
-| EXP-033 | Where a `listing.takenReported` nudge (MOD-017) was sent in the last 7 days, the nudge job shall skip that listing. |
+| EXP-031 | The nudge job shall send at most one nudge per listing per `AVAILABILITY_STALE_DAYS` period, and none in the last `EXPIRY_LAST_REMINDER_DAYS` before expiry.                            |
+| EXP-032 | When the merchant confirms availability by any route (dashboard, one-tap link, edit), `availabilityAt` resets and the next nudge waits another full period.                             |
+| EXP-033 | Where a `listing.takenReported` nudge (MOD-017) was sent in the last 7 days, the nudge job shall skip that listing.                                                                     |
 
 ### Copy to new draft (Amendment A5 to listings)
 
-| Id | Requirement |
-|---|---|
+| Id      | Requirement                                                                                                                                                                                                             |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EXP-040 | When a merchant copies an `ARCHIVED` or `EXPIRED` listing they own, the API shall create a new `DRAFT` with the same details, fees and photo references, availability `AVAILABLE`, and no `publishedAt` or `expiresAt`. |
-| EXP-041 | Copying shall not change the original listing and shall count toward the 20-draft limit (LST-003). |
-| EXP-042 | If the original's campus or area has since been deactivated (LST-064), then the copy shall leave that field empty for the merchant to choose again. |
+| EXP-041 | Copying shall not change the original listing and shall count toward the 20-draft limit (LST-003).                                                                                                                      |
+| EXP-042 | If the original's campus or area has since been deactivated (LST-064), then the copy shall leave that field empty for the merchant to choose again.                                                                     |
 
 ## Acceptance tests
 

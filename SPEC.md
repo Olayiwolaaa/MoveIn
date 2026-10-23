@@ -90,7 +90,7 @@ export class ListingsController {
 
 ## Testing strategy
 
-- API: Jest unit tests per service; integration tests against a real test Postgres for each module's EARS requirements.
+- API: Vitest (with SWC, so NestJS decorators and dependency injection work) unit tests per service; integration tests against a real test Postgres for each module's EARS requirements.
 - Webhooks (Clerk, Bachs): tests with valid, unsigned and forged payloads.
 - Web: Playwright e2e for the four core journeys — browse and contact, merchant create-pay-publish, admin remove after report, expiry.
 - Test names carry requirement ids so spec coverage can be checked by grep.
@@ -183,6 +183,8 @@ The Docker images keep the app portable, so moving to a VPS later means copying 
 | 2026-10-23 | 3 scam reports with phone numbers from different people in 48 hours automatically suspend a merchant; appeal, admin investigation, lost days made up if cleared. |
 | 2026-10-23 | Managed platform (Railway) for the pilot instead of a VPS; Docker images keep a later move possible. |
 | 2026-10-23 | TypeScript pinned to 5.9 across the workspace. TypeScript 7 removed `moduleResolution: node`, and tools that use the TypeScript JavaScript API (Nest CLI, ts-jest) may not support it yet; revisit once they do. Module resolution uses `NodeNext` (API, shared) and `Bundler` (web). |
+| 2026-10-23 | API tests use Vitest + SWC instead of Jest. Jest failed with `createRequireEsmError` loading the NestJS 12 test package, meaning it tried to `require` an ES module it can't load; Vitest loads ES modules natively. |
+| 2026-10-23 | Next.js `output: 'standalone'` only when `NEXT_OUTPUT=standalone` (set in the Docker build, T04), so `next start` works locally and in Playwright. |
 
 ## Open questions
 
