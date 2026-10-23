@@ -7,6 +7,6 @@ describe('AppController', () => {
     const moduleRef = await Test.createTestingModule({ controllers: [AppController] }).compile();
     const controller = moduleRef.get(AppController);
 
-    expect(controller.root()).toEqual({ name: 'movein-api', propertyTypes: 6 });
+    expect(controller.root()).toEqual({ name: 'movein-api', propertyTypes: 7 });
   });
 });
