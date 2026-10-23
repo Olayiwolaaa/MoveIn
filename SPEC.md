@@ -185,6 +185,7 @@ The Docker images keep the app portable, so moving to a VPS later means copying 
 | 2026-10-23 | TypeScript pinned to 5.9 across the workspace. TypeScript 7 removed `moduleResolution: node`, and tools that use the TypeScript JavaScript API (Nest CLI, ts-jest) may not support it yet; revisit once they do. Module resolution uses `NodeNext` (API, shared) and `Bundler` (web). |
 | 2026-10-23 | API tests use Vitest + SWC instead of Jest. Jest failed with `createRequireEsmError` loading the NestJS 12 test package, meaning it tried to `require` an ES module it can't load; Vitest loads ES modules natively. |
 | 2026-10-23 | Next.js `output: 'standalone'` only when `NEXT_OUTPUT=standalone` (set in the Docker build, T04), so `next start` works locally and in Playwright. |
+| 2026-10-23 | Bun pinned to 1.3.14 in CI (and later in Docker) to match the local version; an unpinned CI picked up Bun 1.4.4 and rejected the lockfile. Upgrade Bun locally and in CI together. |
 
 ## Open questions
 
