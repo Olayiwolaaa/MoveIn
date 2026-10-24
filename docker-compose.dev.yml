@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: movein
+      POSTGRES_PASSWORD: movein
+      POSTGRES_DB: movein_dev
+    ports:
+      - '5433:5432'
+    volumes:
+      - movein-pg:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U movein -d movein_dev']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  movein-pg:

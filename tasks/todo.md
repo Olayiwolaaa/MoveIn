@@ -10,13 +10,13 @@ Plan: `tasks/plan.md` · [L] launch-critical · [F] follow-up
   - Files: `package.json`, `apps/web/*`, `apps/api/*`, `packages/shared/*`, `tsconfig.base.json`
   - Reqs: SPEC project structure, code style
 
-- [ ] **T02 [L] Tooling and CI**
+- [x] **T02 [L] Tooling and CI**
   - Acceptance: ESLint + Prettier; Vitest + SWC in the API; Playwright in web; GitHub Actions runs lint, test, build on every push and PR.
   - Verify: a failing test makes CI red; fixing it makes CI green.
   - Files: `.github/workflows/ci.yml`, lint/test configs
 
-- [ ] **T03 [L] Database and health check**
-  - Acceptance: Prisma in `apps/api/prisma`; local Postgres via `docker compose` (local only); separate test database; `GET /health` checks the DB.
+- [x] **T03 [L] Database and health check**
+  - Acceptance: Prisma 6 in `apps/api/prisma`; local Postgres 17 (alpine) via `docker compose` on port 5433 (local only); separate test database; `GET /health` checks the DB.
   - Verify: `bunx prisma migrate dev` runs; `/health` returns 200, and 503 with the DB stopped.
   - Files: `apps/api/prisma/schema.prisma`, `docker-compose.dev.yml`, `apps/api/src/health/*`
   - Reqs: SYS-026

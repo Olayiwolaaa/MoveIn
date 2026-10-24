@@ -4,16 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "build": "nest build",
+    "build": "prisma generate && nest build",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@movein/shared": "workspace:*",
     "@nestjs/common": "^12.2.0",
+    "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.2.0",
     "@nestjs/platform-express": "^12.2.0",
+    "@prisma/client": "6",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
@@ -23,6 +27,7 @@
     "@nestjs/testing": "^12.2.0",
     "@swc/core": "^1.16.20",
     "@types/node": "^26.6.5",
+    "prisma": "6",
     "typescript": "5.9",
     "unplugin-swc": "^2.0.0",
     "vitest": "^5.0.5"
